@@ -1,0 +1,18 @@
+# Al-Quds Real Estate & Builders
+
+> Al-Quds Real Estate & Builders provides property buying and rental listings, farmhouse stays and events, and turn-key construction in Islamabad and Rawalpindi, Pakistan.
+
+## Public pages
+- Home: https://alqudswebsite.vercel.app/#home
+- Buy: https://alqudswebsite.vercel.app/#sale
+- Rent: https://alqudswebsite.vercel.app/#rent
+- Stays and Events: https://alqudswebsite.vercel.app/#stay
+- Construction: https://alqudswebsite.vercel.app/#construction
+- Construction Calculator: https://alqudswebsite.vercel.app/#calc
+- Contact: https://alqudswebsite.vercel.app/#contact
+
+## Contact
+- Email: alquds950@gmail.com
+- Phone and WhatsApp: +92 336 0001308
+
+Calculator figures are estimates only. Property availability and final construction quotations must be confirmed directly.

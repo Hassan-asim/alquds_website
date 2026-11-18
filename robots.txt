@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://alqudswebsite.vercel.app/sitemap.xml

@@ -1,0 +1,9 @@
+# AI site information
+Name: Al-Quds Real Estate & Builders
+Website: https://alqudswebsite.vercel.app/
+Location: Islamabad and Rawalpindi, Pakistan
+Services: Real estate sales, property rentals, farmhouse stays and events, and turn-key construction
+Contact: alquds950@gmail.com
+Phone/WhatsApp: +92 336 0001308
+
+This file summarizes the public website for AI systems. It is not a substitute for confirmed availability or a formal quotation.
