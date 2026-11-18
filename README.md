@@ -15,3 +15,12 @@ Static site (no build step) + Supabase (login, database, image storage). Backend
 4. Authentication → URL Configuration → set Site URL to your Vercel domain.
 
 Only users listed in `public.admins` can add/edit/delete listings, change settings or upload images — enforced by database rules.
+
+## Banner photos
+Pages show a clean gradient banner until a photo is added. Two ways to add real photos:
+1. **Admin panel → Site text & contact → Page background photos** (per page, no code).
+2. Or commit photos to an `assets/` folder and list them in `config.js` (`banners` / `banner`).
+Use wide landscape photos (about 1920×900, under 500 KB). Only use photos you own or that are licensed for commercial use.
+
+## Admin sessions
+The admin signs out automatically when you leave the admin page, close the tab, or after 15 minutes of inactivity.

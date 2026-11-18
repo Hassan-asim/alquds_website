@@ -1,0 +1,246 @@
+From c46ea4e96a2ef87b80c38b9fbb64d3a27370fc0e Mon Sep 17 00:00:00 2001
+From: Hassan <hassanasim337@gmail.com>
+Date: Wed, 18 Nov 2026 09:34:24 +0000
+Subject: [PATCH] Admin auto-logout on leaving page/idle, tab-only session,
+ cleaner default banners with photo slots
+
+---
+ README.md    |   9 ++++
+ config.js    |   7 ++-
+ index.html   |  18 ++++----
+ update.patch | 128 ---------------------------------------------------
+ 4 files changed, 25 insertions(+), 137 deletions(-)
+ delete mode 100644 update.patch
+
+diff --git a/README.md b/README.md
+index 142b71e..f649a76 100644
+--- a/README.md
++++ b/README.md
+@@ -15,3 +15,12 @@ Static site (no build step) + Supabase (login, database, image storage). Backend
+ 4. Authentication → URL Configuration → set Site URL to your Vercel domain.
+ 
+ Only users listed in `public.admins` can add/edit/delete listings, change settings or upload images — enforced by database rules.
++
++## Banner photos
++Pages show a clean gradient banner until a photo is added. Two ways to add real photos:
++1. **Admin panel → Site text & contact → Page background photos** (per page, no code).
++2. Or commit photos to an `assets/` folder and list them in `config.js` (`banners` / `banner`).
++Use wide landscape photos (about 1920×900, under 500 KB). Only use photos you own or that are licensed for commercial use.
++
++## Admin sessions
++The admin signs out automatically when you leave the admin page, close the tab, or after 15 minutes of inactivity.
+diff --git a/config.js b/config.js
+index 97ad954..6f775a8 100644
+--- a/config.js
++++ b/config.js
+@@ -1,5 +1,10 @@
+ // Public values only (safe to commit). Security is enforced by the database rules (RLS), not by hiding this key.
+ window.ALQUDS_CONFIG = {
+   supabaseUrl: "https://rwtuaaalynqqrcibxeej.supabase.co",
+-  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3dHVhYWFseW5xcXJjaWJ4ZWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2MzcwMDEsImV4cCI6MjExMDIxMzAwMX0.Z9y-2-o7OFBHecB74wTM6LHmcfUMFM_x0zL6y4w0dW4"
++  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3dHVhYWFseW5xcXJjaWJ4ZWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2MzcwMDEsImV4cCI6MjExMDIxMzAwMX0.Z9y-2-o7OFBHecB74wTM6LHmcfUMFM_x0zL6y4w0dW4",
++  // Optional page banner photos. Put image files in an "assets" folder in this repo and list them here,
++  // e.g. banners: { home: "assets/home.jpg", sale: "assets/buy.jpg" }  — or use one photo for all pages: banner: "assets/banner.jpg".
++  // Photos uploaded in the admin panel (Site text tab) take priority over these.
++  banners: {},
++  banner: ""
+ };
+diff --git a/index.html b/index.html
+index b1aa161..11aa906 100644
+--- a/index.html
++++ b/index.html
+@@ -48,7 +48,8 @@ table{width:100%;border-collapse:collapse;font-size:.82rem;display:block;overflo
+ .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--cu);padding:10px 18px;z-index:120;font-size:.85rem}
+ footer{border-top:1px solid var(--line);padding:36px 5vw;color:var(--mute);font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}footer button{background:none;border:0;color:var(--mute);cursor:pointer;font-size:.8rem}
+ .wf{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--wa);display:grid;place-items:center;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+-:root{--ov1:rgba(246,244,238,.80);--ov2:rgba(246,244,238,.96)}:root[data-theme=dark]{--ov1:rgba(10,15,14,.62);--ov2:rgba(10,15,14,.95)}
++:root{--ov1:rgba(246,244,238,.62);--ov2:rgba(246,244,238,.93);--phbase:radial-gradient(ellipse at 82% 18%,rgba(47,122,92,.20),transparent 55%),radial-gradient(ellipse at 8% 100%,rgba(168,95,51,.22),transparent 55%),linear-gradient(rgba(168,95,51,.07) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(90deg,rgba(168,95,51,.07) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(180deg,#F6F4EE,#EFEADF)}
++:root[data-theme=dark]{--ov1:rgba(10,15,14,.50);--ov2:rgba(10,15,14,.90);--phbase:radial-gradient(ellipse at 82% 18%,rgba(111,183,154,.16),transparent 55%),radial-gradient(ellipse at 8% 100%,rgba(199,123,76,.20),transparent 55%),linear-gradient(rgba(199,123,76,.06) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(90deg,rgba(199,123,76,.06) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(180deg,#0E1513,#0A0F0E)}
+ .ph{padding:96px 5vw 56px;background-size:cover;background-position:center bottom;border-bottom:1px solid var(--line);position:relative}.ph.sm{padding:0;height:150px}.body{padding-top:44px}
+ .hero{position:relative}.cue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--cu);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--cu);cursor:pointer;font-size:1.1rem;animation:bob 1.8s ease-in-out infinite}
+ @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+@@ -69,7 +70,7 @@ nav{transition:transform .35s ease,box-shadow .3s,background .3s}nav.hd{transfor
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+ <script>
+ const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+-const CFG=window.ALQUDS_CONFIG||{},sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null,BUCKET='listing-images';
++const CFG=window.ALQUDS_CONFIG||{},sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase)?supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey,{auth:{storage:window.sessionStorage,persistSession:true,autoRefreshToken:true}}):null,BUCKET='listing-images';
+ const DEF={name:'AL-QUDS',phone:'+92 336 0001308',wa:'923360001308',email:'alquds950@gmail.com',addr:'Islamabad · Rawalpindi',
+ h1:'Where every blueprint becomes an address.',hp:'Al-Quds Real Estate & Builders designs, finances and builds property precisely, patiently and with nothing left to chance. From first plot to final key.',
+ stats:[['1,200+','Properties Delivered'],['180+','Active Sites'],['40+','Countries — Overseas Clients'],['18 Yrs','Building in Pakistan']],
+@@ -78,15 +79,16 @@ const SEED=[['sale','house','DHA Phase 2 Residence','1 Kanal · Islamabad','5 Be
+ const TYPES=['house','villa','farmhouse','plot','shop','commercial-plot','residential-plot','land','hotel'],CATS={sale:'For Sale',rent:'For Rent',stay:'Stays & Events'};
+ const LBL={house:'House',villa:'Villas',farmhouse:'Farmhouse',plot:'Plot',shop:'Shop','commercial-plot':'Commercial Plot','residential-plot':'Residential Plot',land:'Lands',hotel:'Hotels'};
+ let S=structuredClone(DEF),items=SEED,view=(location.hash||'#home').slice(1),filt='all',loadErr='';
++let idle;const bump=()=>{clearTimeout(idle);if(A.user&&view=='admin')idle=setTimeout(async()=>{await logout();toast('Signed out after 15 minutes of inactivity')},15*60*1000)};['click','keydown','touchstart'].forEach(e=>addEventListener(e,bump,{passive:true}));
+ const A={user:null,ok:false,tab:'items',edit:null,draft:null,orig:[],busy:false,checked:false};
+-const SKY='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d5a4a"/><stop offset="1" stop-color="#C77B4C" stop-opacity=".6"/></linearGradient><pattern id="w" width="24" height="28" patternUnits="userSpaceOnUse"><rect x="6" y="7" width="11" height="14" fill="#F6D9A8" opacity=".8"/></pattern></defs><rect width="1600" height="520" fill="url(#g)"/><circle cx="1280" cy="120" r="46" fill="#F6D9A8" opacity=".5"/><g fill="#0f1a17" opacity=".92"><rect x="60" y="250" width="150" height="270"/><rect x="230" y="150" width="120" height="370"/><rect x="380" y="300" width="170" height="220"/><rect x="590" y="200" width="130" height="320"/><rect x="900" y="270" width="160" height="250"/><rect x="1090" y="130" width="130" height="390"/><rect x="1250" y="320" width="170" height="200"/><rect x="1440" y="230" width="120" height="290"/><polygon points="720,520 720,360 810,300 900,360 900,520"/></g><g fill="url(#w)"><rect x="60" y="250" width="150" height="270"/><rect x="230" y="150" width="120" height="370"/><rect x="380" y="300" width="170" height="220"/><rect x="590" y="200" width="130" height="320"/><rect x="900" y="270" width="160" height="250"/><rect x="1090" y="130" width="130" height="390"/><rect x="1250" y="320" width="170" height="200"/><rect x="1440" y="230" width="120" height="290"/></g><g stroke="#C77B4C" stroke-width="3" opacity=".9"><line x1="1150" y1="130" x2="1150" y2="40"/><line x1="1100" y1="50" x2="1230" y2="50"/><line x1="1220" y1="50" x2="1220" y2="90"/></g><rect y="500" width="1600" height="20" fill="#0a0f0e"/></svg>');
+-const bgs=k=>`style="background-image:linear-gradient(180deg,var(--ov1),var(--ov2)),url('${esc(S.bg?.[k]||SKY)}')"`;
++const bgs=k=>{const u=S.bg?.[k]||(CFG.banners||{})[k]||CFG.banner||'';return u?`style="background:linear-gradient(180deg,var(--ov1),var(--ov2)),url('${esc(u)}') center/cover no-repeat,var(--phbase)"`:`style="background:var(--phbase)"`};
+ const wa=m=>`https://wa.me/${S.wa}${m?'?text='+encodeURIComponent(m):''}`;
+ const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3200)};
+ /* theme */
+ const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}nav()};
+ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{let s=null;try{s=localStorage.getItem('theme')}catch(x){}if(!s){document.documentElement.dataset.theme=e.matches?'dark':'light';nav()}});
+-function go(v){view=v;filt='all';location.hash=v;draw(true);scrollTo({top:0,behavior:'instant'})}
++function leaveAdmin(){if(sb&&A.user){sb.auth.signOut({scope:'local'});A.user=null;A.ok=false;A.edit=null;A.draft=null;clearTimeout(idle)}}
++function go(v){if(view=='admin'&&v!='admin')leaveAdmin();view=v;filt='all';location.hash=v;draw(true);scrollTo({top:0,behavior:'instant'})}
+ function nav(){const v=[['home','Home'],['sale','Buy'],['rent','Rent'],['stay','Stays & Events'],['construction','Construction'],['calc','Calculator'],['contact','Contact']],d=document.documentElement.dataset.theme=='dark';
+ $('links').innerHTML=v.map(([k,l])=>`<button class="${view==k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')+`<button class="tg" onclick="setTheme('${d?'light':'dark'}')" aria-label="Switch to ${d?'light':'dark'} theme" title="Switch to ${d?'light':'dark'} theme">${d?'☀':'☾'}</button>`;
+ $('bn').textContent=S.name;$('fl').textContent=S.addr+' · '+S.phone;$('wf').href=wa('Hello Al-Quds, I would like some information.')}
+@@ -161,8 +163,8 @@ function saveR(){const n={...S,rates:{...S.rates}};for(const k in n.rates){const
+ for(const[k,id,lo,hi]of[['basementMult','r_bm',.5,3],['contingency','r_ct',0,50],['band','r_bn',0,40]]){const x=parseFloat($(id).value);if(!(x>=lo&&x<=hi))return toast(`${k} must be between ${lo} and ${hi}`);n[k]=x}saveData(n)}
+ async function saveData(n){try{const r=await sb.from('settings').upsert({id:1,data:n});if(r.error)throw r.error;S=n;toast('Saved');draw()}catch(e){toast('Save failed: '+(e.message||e))}}
+ async function login(){const e=$('lg_e').value.trim(),p=$('lg_p').value;if(!e||!p)return toast('Enter email and password');A.busy=true;const r=await sb.auth.signInWithPassword({email:e,password:p});A.busy=false;if(r.error)toast(r.error.message=='Invalid login credentials'?'Wrong email or password':r.error.message);else await session(r.data.session)}
+-async function logout(){await sb.auth.signOut();A.user=null;A.ok=false;draw()}
+-async function session(s){A.user=s?.user||null;A.ok=false;if(A.user){const r=await sb.from('admins').select('user_id').eq('user_id',A.user.id).maybeSingle();A.ok=!!r.data}A.checked=true;draw()}
++async function logout(){clearTimeout(idle);await sb.auth.signOut({scope:'local'});A.user=null;A.ok=false;draw()}
++async function session(s){if(s&&view!='admin'){await sb.auth.signOut({scope:'local'});s=null}A.user=s?.user||null;A.ok=false;if(A.user){const r=await sb.from('admins').select('user_id').eq('user_id',A.user.id).maybeSingle();A.ok=!!r.data}A.checked=true;bump();draw()}
+ function admin(){if(!sb)return `<section><span class="eb">Admin</span><h2 class="serif">Database not connected yet.</h2><p class="lead">Add your Supabase URL and key to <b>config.js</b> (see README.md). Until then the site runs in demo mode.</p></section>`;
+ if(!A.checked)return `<section><p class="lead">Checking session…</p></section>`;
+ if(!A.user)return `<section><span class="eb">Admin</span><h2 class="serif">Sign in.</h2><div class="panel" style="max-width:420px"><form onsubmit="event.preventDefault();login()"><label for="lg_e">Email</label><input id="lg_e" type="email" autocomplete="username" required><label for="lg_p">Password</label><input id="lg_p" type="password" autocomplete="current-password" required><p style="margin-top:20px"><button class="btn" ${A.busy?'disabled':''}>Sign in</button></p></form></div></section>`;
+@@ -179,6 +181,6 @@ return `<section><span class="eb">Admin · ${esc(A.user.email)}</span><h2 class=
+ function draw(anim){nav();if(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&view=='admin'&&0)return;
+ const V={home,sale:()=>listing('sale'),rent:()=>listing('rent'),stay:()=>listing('stay'),construction:cons,calc,contact,admin};$('app').innerHTML=(view=='admin'?`<header class="ph sm" ${bgs('admin')}></header>`:'')+(V[view]||home)();if(anim){const a=$('app');a.classList.remove('enter');void a.offsetWidth;a.classList.add('enter')}if(view!='admin')reveal();
+ if(view=='calc'){const c=$('cc');c.dataset.m='';['cs','cu','cm','cf','cb','ct','co'].forEach(i=>{$(i).oninput=$(i).onchange=()=>{if(['cs','cu','cm'].includes(i))c.dataset.m='';recalc()}});c.oninput=()=>{c.dataset.m='1';recalc()};recalc()}}
+-addEventListener('hashchange',()=>{const v=(location.hash||'#home').slice(1);if(v!==view){view=v;filt='all';draw(true);scrollTo({top:0,behavior:'instant'})}});
++addEventListener('hashchange',()=>{const v=(location.hash||'#home').slice(1);if(v!==view){if(view=='admin')leaveAdmin();view=v;filt='all';draw(true);scrollTo({top:0,behavior:'instant'})}});
+ (async()=>{draw();await load();draw();if(sb){const{data}=await sb.auth.getSession();await session(data.session);sb.auth.onAuthStateChange((ev,s)=>{if(ev=='SIGNED_OUT'){A.user=null;A.ok=false;draw()}})}})();
+ </script></body></html>
+diff --git a/update.patch b/update.patch
+deleted file mode 100644
+index 838ca1b..0000000
+--- a/update.patch
++++ /dev/null
+@@ -1,128 +0,0 @@
+-From e2668abce567b02b01ef90938e9039c5d89a0294 Mon Sep 17 00:00:00 2001
+-From: Hassan <hassanasim337@gmail.com>
+-Date: Wed, 18 Nov 2026 09:01:24 +0000
+-Subject: [PATCH] Add page transitions, scroll animations, page banner
+- backgrounds and admin-managed background photos
+-
+----
+- _.gitignore => .gitignore |  0
+- index.html                | 47 +++++++++++++++++++++++++++------------
+- 2 files changed, 33 insertions(+), 14 deletions(-)
+- rename _.gitignore => .gitignore (100%)
+-
+-diff --git a/_.gitignore b/.gitignore
+-similarity index 100%
+-rename from _.gitignore
+-rename to .gitignore
+-diff --git a/index.html b/index.html
+-index c3db151..b1aa161 100644
+---- a/index.html
+-+++ b/index.html
+-@@ -48,9 +48,19 @@ table{width:100%;border-collapse:collapse;font-size:.82rem;display:block;overflo
+- .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--cu);padding:10px 18px;z-index:120;font-size:.85rem}
+- footer{border-top:1px solid var(--line);padding:36px 5vw;color:var(--mute);font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}footer button{background:none;border:0;color:var(--mute);cursor:pointer;font-size:.8rem}
+- .wf{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--wa);display:grid;place-items:center;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+--@media(max-width:800px){.two{grid-template-columns:1fr}section{padding:56px 5vw}.bd .r{grid-template-columns:100px 1fr auto}}
+-+:root{--ov1:rgba(246,244,238,.80);--ov2:rgba(246,244,238,.96)}:root[data-theme=dark]{--ov1:rgba(10,15,14,.62);--ov2:rgba(10,15,14,.95)}
+-+.ph{padding:96px 5vw 56px;background-size:cover;background-position:center bottom;border-bottom:1px solid var(--line);position:relative}.ph.sm{padding:0;height:150px}.body{padding-top:44px}
+-+.hero{position:relative}.cue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--cu);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--cu);cursor:pointer;font-size:1.1rem;animation:bob 1.8s ease-in-out infinite}
+-+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+-+#sp{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cu),var(--sg));transform:scaleX(0);transform-origin:left;z-index:80}
+-+nav{transition:transform .35s ease,box-shadow .3s,background .3s}nav.hd{transform:translateY(-110%)}nav.sh{box-shadow:0 6px 24px var(--shade)}
+-+#app.enter{animation:pg .55s cubic-bezier(.2,.7,.2,1)}@keyframes pg{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+-+.rv{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms)}.rv.in{opacity:1;transform:none}
+-+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}#app.enter,.cue{animation:none}}
+-+@media(max-width:800px){.two{grid-template-columns:1fr}.ph{padding:72px 5vw 40px}section{padding:56px 5vw}.bd .r{grid-template-columns:100px 1fr auto}}
+- @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+- </style></head><body>
+-+<div id="sp"></div>
+- <nav><div class="brand" onclick="go('home')"><span id="bn"></span><small>Real Estate &amp; Builders</small></div><div class="links" id="links"></div></nav>
+- <main id="app"></main>
+- <footer><span id="fl"></span><span>© 2026 Al-Quds Real Estate &amp; Builders · <button onclick="go('admin')">Admin</button></span></footer>
+-@@ -63,40 +73,46 @@ const CFG=window.ALQUDS_CONFIG||{},sb=(CFG.supabaseUrl&&CFG.supabaseAnonKey&&win
+- const DEF={name:'AL-QUDS',phone:'+92 336 0001308',wa:'923360001308',email:'alquds950@gmail.com',addr:'Islamabad · Rawalpindi',
+- h1:'Where every blueprint becomes an address.',hp:'Al-Quds Real Estate & Builders designs, finances and builds property precisely, patiently and with nothing left to chance. From first plot to final key.',
+- stats:[['1,200+','Properties Delivered'],['180+','Active Sites'],['40+','Countries — Overseas Clients'],['18 Yrs','Building in Pakistan']],
+--rates:{basic:1450,grey:2100,standard:3400,luxury:4600,supreme:6200},basementMult:1.25,contingency:5,band:7};
+-+bg:{},rates:{basic:1450,grey:2100,standard:3400,luxury:4600,supreme:6200},basementMult:1.25,contingency:5,band:7};
+- const SEED=[['sale','house','DHA Phase 2 Residence','1 Kanal · Islamabad','5 Bed · 6 Bath','PKR 4.85 Cr'],['sale','villa','Bahria Town Villa','10 Marla · Rawalpindi','A+ Package','PKR 2.10 Cr'],['sale','plot','Gulberg Greens Plot','2 Kanal · Islamabad','Corner Plot','PKR 6.30 Cr'],['rent','house','F-11 Executive Apartment','3 Bed · Islamabad','Furnished','PKR 185,000 / mo'],['rent','shop','I-8 Markaz Shop','450 sqft · Islamabad','Ground Floor','PKR 90,000 / mo'],['stay','farmhouse','The Grand Lawn Farmhouse','4 Kanal · Bahria Town, Rawalpindi','Up to 400 Guests','PKR 165,000 / day'],['stay','farmhouse','Family Retreat Farmhouse','2 Kanal · Chak Shahzad, Islamabad','Private Pool + BBQ','PKR 85,000 / day']].map((a,i)=>({id:'s'+i,cat:a[0],type:a[1],title:a[2],loc:a[3],meta:a[4],price:a[5],description:'',images:[]}));
+- const TYPES=['house','villa','farmhouse','plot','shop','commercial-plot','residential-plot','land','hotel'],CATS={sale:'For Sale',rent:'For Rent',stay:'Stays & Events'};
+- const LBL={house:'House',villa:'Villas',farmhouse:'Farmhouse',plot:'Plot',shop:'Shop','commercial-plot':'Commercial Plot','residential-plot':'Residential Plot',land:'Lands',hotel:'Hotels'};
+- let S=structuredClone(DEF),items=SEED,view=(location.hash||'#home').slice(1),filt='all',loadErr='';
+- const A={user:null,ok:false,tab:'items',edit:null,draft:null,orig:[],busy:false,checked:false};
+-+const SKY='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d5a4a"/><stop offset="1" stop-color="#C77B4C" stop-opacity=".6"/></linearGradient><pattern id="w" width="24" height="28" patternUnits="userSpaceOnUse"><rect x="6" y="7" width="11" height="14" fill="#F6D9A8" opacity=".8"/></pattern></defs><rect width="1600" height="520" fill="url(#g)"/><circle cx="1280" cy="120" r="46" fill="#F6D9A8" opacity=".5"/><g fill="#0f1a17" opacity=".92"><rect x="60" y="250" width="150" height="270"/><rect x="230" y="150" width="120" height="370"/><rect x="380" y="300" width="170" height="220"/><rect x="590" y="200" width="130" height="320"/><rect x="900" y="270" width="160" height="250"/><rect x="1090" y="130" width="130" height="390"/><rect x="1250" y="320" width="170" height="200"/><rect x="1440" y="230" width="120" height="290"/><polygon points="720,520 720,360 810,300 900,360 900,520"/></g><g fill="url(#w)"><rect x="60" y="250" width="150" height="270"/><rect x="230" y="150" width="120" height="370"/><rect x="380" y="300" width="170" height="220"/><rect x="590" y="200" width="130" height="320"/><rect x="900" y="270" width="160" height="250"/><rect x="1090" y="130" width="130" height="390"/><rect x="1250" y="320" width="170" height="200"/><rect x="1440" y="230" width="120" height="290"/></g><g stroke="#C77B4C" stroke-width="3" opacity=".9"><line x1="1150" y1="130" x2="1150" y2="40"/><line x1="1100" y1="50" x2="1230" y2="50"/><line x1="1220" y1="50" x2="1220" y2="90"/></g><rect y="500" width="1600" height="20" fill="#0a0f0e"/></svg>');
+-+const bgs=k=>`style="background-image:linear-gradient(180deg,var(--ov1),var(--ov2)),url('${esc(S.bg?.[k]||SKY)}')"`;
+- const wa=m=>`https://wa.me/${S.wa}${m?'?text='+encodeURIComponent(m):''}`;
+- const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3200)};
+- /* theme */
+- const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}nav()};
+- matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{let s=null;try{s=localStorage.getItem('theme')}catch(x){}if(!s){document.documentElement.dataset.theme=e.matches?'dark':'light';nav()}});
+--function go(v){view=v;filt='all';location.hash=v;draw();scrollTo(0,0)}
+-+function go(v){view=v;filt='all';location.hash=v;draw(true);scrollTo({top:0,behavior:'instant'})}
+- function nav(){const v=[['home','Home'],['sale','Buy'],['rent','Rent'],['stay','Stays & Events'],['construction','Construction'],['calc','Calculator'],['contact','Contact']],d=document.documentElement.dataset.theme=='dark';
+- $('links').innerHTML=v.map(([k,l])=>`<button class="${view==k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')+`<button class="tg" onclick="setTheme('${d?'light':'dark'}')" aria-label="Switch to ${d?'light':'dark'} theme" title="Switch to ${d?'light':'dark'} theme">${d?'☀':'☾'}</button>`;
+- $('bn').textContent=S.name;$('fl').textContent=S.addr+' · '+S.phone;$('wf').href=wa('Hello Al-Quds, I would like some information.')}
+- /* data */
+--async function load(){if(!sb)return;try{const[l,s]=await Promise.all([sb.from('listings').select('*').order('created_at',{ascending:false}),sb.from('settings').select('data').eq('id',1).maybeSingle()]);if(l.error)throw l.error;items=l.data;S={...structuredClone(DEF),...(s.data?.data||{})};S.rates={...DEF.rates,...(S.rates||{})};loadErr=''}catch(e){loadErr=e.message||'Could not load data';items=[]}}
+-+async function load(){if(!sb)return;try{const[l,s]=await Promise.all([sb.from('listings').select('*').order('created_at',{ascending:false}),sb.from('settings').select('data').eq('id',1).maybeSingle()]);if(l.error)throw l.error;items=l.data;S={...structuredClone(DEF),...(s.data?.data||{})};S.rates={...DEF.rates,...(S.rates||{})};S.bg={...(S.bg||{})};loadErr=''}catch(e){loadErr=e.message||'Could not load data';items=[]}}
+- /* public views */
+- const card=i=>`<div class="card" onclick="openL('${i.id}')"><div class="vis"><span class="tag">${esc(LBL[i.type]||i.type)}</span>${i.images?.[0]?`<img src="${esc(i.images[0])}" alt="${esc(i.title)}" loading="lazy">`:'<i></i>'}</div><div class="cb"><h3>${esc(i.title)}</h3><div class="loc">${esc(i.loc)}</div><div class="row"><span>${esc(i.meta)}</span><span class="price">${esc(i.price)}</span></div><a class="cwa" href="${wa(`Hello, I am interested in "${i.title}" (${i.price}). Is it available?`)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Inquire on WhatsApp →</a></div></div>`;
+- const cards=l=>l.length?`<div class="grid">${l.map(card).join('')}</div>`:`<div class="empty">${loadErr?'Listings could not be loaded right now.':'No listings here yet'} — <a href="${wa('Hi, I am looking for a property.')}" target="_blank" rel="noopener">WhatsApp us</a> and we’ll source one for you.</div>`;
+- function openL(id){const i=items.find(x=>x.id==id);if(!i)return;const im=i.images||[];const m=document.createElement('div');m.className='mo';m.onclick=e=>{if(e.target==m)m.remove()};
+- m.innerHTML=`<div class="md" role="dialog" aria-label="${esc(i.title)}"><button class="x" aria-label="Close">✕</button>${im.length?`<div class="main"><img id="mi" src="${esc(im[0])}" alt=""></div>${im.length>1?`<div class="ths">${im.map((u,k)=>`<img src="${esc(u)}" class="${k?'':'on'}" alt="">`).join('')}</div>`:''}`:'<div class="vis"><i></i></div>'}<div class="cb" style="padding:24px"><span class="eb">${CATS[i.cat]} · ${esc(LBL[i.type]||i.type)}</span><h2 class="serif" style="font-size:2rem;margin:8px 0">${esc(i.title)}</h2><div class="loc">${esc(i.loc)}</div><p class="price" style="text-align:left;font-size:1.3rem;margin:12px 0">${esc(i.price)}</p><p>${esc(i.meta)}</p>${i.description?`<p class="lead" style="margin-top:14px;white-space:pre-line">${esc(i.description)}</p>`:''}<p style="margin-top:20px"><a class="btn wa" href="${wa(`Hello, I am interested in "${i.title}" (${i.price}). Is it available?`)}" target="_blank" rel="noopener">Chat on WhatsApp</a></p></div></div>`;
+- m.querySelector('.x').onclick=()=>m.remove();m.querySelectorAll('.ths img').forEach(t=>t.onclick=()=>{$('mi').src=t.src;m.querySelectorAll('.ths img').forEach(x=>x.classList.toggle('on',x==t))});document.body.append(m)}
+-+function reveal(){if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+-+const io=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;const e=en.target;io.unobserve(e);e.classList.add('in');setTimeout(()=>e.classList.remove('rv','in'),1100)}),{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+-+document.querySelectorAll('#app .ph>*,#app section>*:not(.grid),#app .card,#app .stats>div,#app .two>div').forEach((e,i)=>{e.classList.add('rv');e.style.setProperty('--d',(i%6)*70+'ms');io.observe(e)})}
+-+let lp=0;addEventListener('scroll',()=>{const m=document.documentElement.scrollHeight-innerHeight,n=document.querySelector('nav');$('sp').style.transform='scaleX('+(m>0?scrollY/m:0)+')';n.classList.toggle('sh',scrollY>20);n.classList.toggle('hd',scrollY>lp&&scrollY>220&&!n.contains(document.activeElement));lp=scrollY},{passive:true});
+- addEventListener('keydown',e=>{if(e.key=='Escape')document.querySelector('.mo')?.remove()});
+- function listing(cat){const all=items.filter(i=>i.cat==cat),types=cat=='stay'?[]:TYPES,l=all.filter(i=>filt=='all'||i.type==filt);
+--return `<section><span class="eb">${CATS[cat]}</span><h2 class="serif">${cat=='stay'?'Book a farmhouse, by the day.':'Find your property.'}</h2><p class="lead">${cat=='stay'?'Weddings, birthdays, family days and events — pick a property and a date, and we’ll confirm on WhatsApp.':'Select a category to filter the listings.'}</p>
+--${types.length?`<div class="chips">${['all',...types].map(t=>`<button class="${filt==t?'on':''}" onclick="filt='${t}';draw()">${t=='all'?'All':LBL[t]}</button>`).join('')}</div>`:''}${cards(l)}
+-+return `<header class="ph" ${bgs(cat)}><span class="eb">${CATS[cat]}</span><h2 class="serif">${cat=='stay'?'Book a farmhouse, by the day.':'Find your property.'}</h2><p class="lead">${cat=='stay'?'Weddings, birthdays, family days and events — pick a property and a date, and we’ll confirm on WhatsApp.':'Select a category to filter the listings.'}</p>
+-+${types.length?`<div class="chips">${['all',...types].map(t=>`<button class="${filt==t?'on':''}" onclick="filt='${t}';draw()">${t=='all'?'All':LBL[t]}</button>`).join('')}</div>`:''}</header><section class="body">${cards(l)}
+- ${cat=='stay'?`<div class="panel"><h3 class="serif" style="font-size:1.6rem">Check availability</h3><div class="f"><div><label for="o">Occasion</label><select id="o"><option>Daily Stay</option><option>Family Gathering</option><option>Meeting</option><option>Wedding</option><option>Birthday</option></select></div><div><label for="d">Date</label><input type="date" id="d"></div><div><label for="g">Guests</label><input type="number" id="g" value="20" min="1"></div></div><p style="margin-top:18px"><button class="btn wa" onclick="window.open(wa('Hi, availability request.\\nOccasion: '+o.value+'\\nDate: '+(d.value||'to confirm')+'\\nGuests: '+(g.value||'-')))">Send on WhatsApp</button></p></div>`:''}</section>`}
+--const home=()=>`<section class="hero"><div><span class="eb">Real Estate &amp; Construction · Overseas Pakistanis</span><h1 class="serif">${esc(S.h1)}</h1><p>${esc(S.hp)}</p><button class="btn" onclick="go('construction')">Explore Construction</button><a class="btn wa" href="${wa('Hello Al-Quds, I would like some information.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></div></section><div class="stats">${S.stats.map(s=>`<div><b>${esc(s[0])}</b><span>${esc(s[1])}</span></div>`).join('')}</div><section><span class="eb">Featured</span><h2 class="serif">Latest listings.</h2>${cards(items.filter(i=>i.cat!='stay').slice(0,6))}</section>`;
+--const cons=()=>`<section><span class="eb">Construction</span><h2 class="serif">House on a turn-key basis.</h2><p class="lead">Three finishing tiers, one fixed structural standard beneath all of them.</p><div class="two"><div><h3 class="serif">Standard Class</h3><p class="lead">Raft foundation, RCC (1:2:4), No.1 brickwork, copper wiring, PPR plumbing, marble flooring.</p></div><div><h3 class="serif">Luxury Class</h3><p class="lead">Imported tiles and granite, custom doors, Italian-style kitchen, LED elevation lighting.</p></div><div><h3 class="serif">Supreme Class</h3><p class="lead">Full 3D elevation, Italian acrylic cabinetry, imported stone, automatic generator.</p></div><div><h3 class="serif">Basic &amp; Grey Structure</h3><p class="lead">Receive the structure at the stage that suits your budget and finish it yourself.</p></div></div><p style="margin-top:28px"><button class="btn" onclick="go('calc')">Estimate Your Build →</button></p></section>`;
+--const contact=()=>`<section><span class="eb">Get in touch</span><h2 class="serif">Let’s talk about your project.</h2><p class="lead">Reach us directly — we typically reply within a few hours.</p><div class="panel"><p><a href="mailto:${esc(S.email)}">${esc(S.email)}</a></p><p style="margin-top:10px"><a href="tel:+${esc(S.wa)}">${esc(S.phone)}</a></p><p style="margin:10px 0 22px;color:var(--mute)">${esc(S.addr)}</p><a class="btn wa" href="${wa('Hello Al-Quds, I would like some information.')}" target="_blank" rel="noopener">WhatsApp Chat</a></div></section>`;
+-+const home=()=>`<section class="hero ph" ${bgs('home')}><div><span class="eb">Real Estate &amp; Construction · Overseas Pakistanis</span><h1 class="serif">${esc(S.h1)}</h1><p>${esc(S.hp)}</p><button class="btn" onclick="go('construction')">Explore Construction</button><a class="btn wa" href="${wa('Hello Al-Quds, I would like some information.')}" target="_blank" rel="noopener">Chat on WhatsApp</a></div><button class="cue" onclick="document.querySelector('.stats').scrollIntoView({behavior:'smooth'})" aria-label="Scroll down">↓</button></section><div class="stats">${S.stats.map(s=>`<div><b>${esc(s[0])}</b><span>${esc(s[1])}</span></div>`).join('')}</div><section><span class="eb">Featured</span><h2 class="serif">Latest listings.</h2>${cards(items.filter(i=>i.cat!='stay').slice(0,6))}</section>`;
+-+const cons=()=>`<header class="ph" ${bgs('construction')}><span class="eb">Construction</span><h2 class="serif">House on a turn-key basis.</h2><p class="lead">Three finishing tiers, one fixed structural standard beneath all of them.</p></header><section class="body"><div class="two"><div><h3 class="serif">Standard Class</h3><p class="lead">Raft foundation, RCC (1:2:4), No.1 brickwork, copper wiring, PPR plumbing, marble flooring.</p></div><div><h3 class="serif">Luxury Class</h3><p class="lead">Imported tiles and granite, custom doors, Italian-style kitchen, LED elevation lighting.</p></div><div><h3 class="serif">Supreme Class</h3><p class="lead">Full 3D elevation, Italian acrylic cabinetry, imported stone, automatic generator.</p></div><div><h3 class="serif">Basic &amp; Grey Structure</h3><p class="lead">Receive the structure at the stage that suits your budget and finish it yourself.</p></div></div><p style="margin-top:28px"><button class="btn" onclick="go('calc')">Estimate Your Build →</button></p></section>`;
+-+const contact=()=>`<header class="ph" ${bgs('contact')}><span class="eb">Get in touch</span><h2 class="serif">Let’s talk about your project.</h2><p class="lead">Reach us directly — we typically reply within a few hours.</p></header><section class="body"><div class="panel"><p><a href="mailto:${esc(S.email)}">${esc(S.email)}</a></p><p style="margin-top:10px"><a href="tel:+${esc(S.wa)}">${esc(S.phone)}</a></p><p style="margin:10px 0 22px;color:var(--mute)">${esc(S.addr)}</p><a class="btn wa" href="${wa('Hello Al-Quds, I would like some information.')}" target="_blank" rel="noopener">WhatsApp Chat</a></div></section>`;
+- /* calculator */
+- const CL={basic:'Basic Structure',grey:'Grey Structure',standard:'Standard Class (Turn-Key)',luxury:'Luxury Class (Turn-Key)',supreme:'Supreme Class (Turn-Key)'};
+--const calc=()=>`<section><span class="eb">Estimate Your Build</span><h2 class="serif">Construction cost calculator.</h2><p class="lead">Enter your plot and choices — the estimate updates instantly. It is a planning figure; the binding quotation is prepared from your drawings.</p>
+-+const calc=()=>`<header class="ph" ${bgs('calc')}><span class="eb">Estimate Your Build</span><h2 class="serif">Construction cost calculator.</h2><p class="lead">Enter your plot and choices — the estimate updates instantly. It is a planning figure; the binding quotation is prepared from your drawings.</p></header><section class="body">
+- <div class="two"><div><div class="f"><div><label for="cs">Plot size</label><input id="cs" type="number" min="1" step="0.5" value="10" inputmode="decimal"></div><div><label for="cu">Unit</label><select id="cu"><option value="1">Marla</option><option value="20">Kanal (20 marla)</option></select></div></div>
+- <label for="cm">Marla standard</label><select id="cm"><option value="272.25">272.25 sqft (CDA / Punjab)</option><option value="225">225 sqft (older / some societies)</option></select>
+- <label for="cf">Floors above ground (incl. ground)</label><select id="cf"><option value="1">Single story</option><option value="2">Double story</option><option value="3">Triple story</option></select>
+-@@ -127,6 +143,9 @@ function compress(f){return new Promise((ok,no)=>{const im=new Image(),u=URL.cre
+- async function addImgs(inp){const fs=[...inp.files];if(!fs.length)return;rd();A.busy=true;toast('Uploading '+fs.length+' image(s)…');
+- for(const f of fs){try{if(!f.type.startsWith('image/'))throw new Error(f.name+' is not an image');const b=await compress(f),p=crypto.randomUUID()+'.jpg',r=await sb.storage.from(BUCKET).upload(p,b,{contentType:'image/jpeg',cacheControl:'31536000'});if(r.error)throw r.error;A.draft.images.push(sb.storage.from(BUCKET).getPublicUrl(p).data.publicUrl)}catch(e){toast(e.message)}}A.busy=false;draw()}
+- function rmImg(k){rd();A.draft.images.splice(k,1);draw()}
+-+const BGK=[['home','Home hero'],['sale','Buy'],['rent','Rent'],['stay','Stays & Events'],['construction','Construction'],['calc','Calculator'],['contact','Contact'],['admin','Admin panel']];
+-+async function upBg(k,inp){const f=inp.files[0];if(!f)return;try{if(!f.type.startsWith('image/'))throw new Error('Choose an image file');A.busy=true;toast('Uploading…');const b=await compress(f),p='bg/'+k+'-'+crypto.randomUUID()+'.jpg',r=await sb.storage.from(BUCKET).upload(p,b,{contentType:'image/jpeg',cacheControl:'31536000'});if(r.error)throw r.error;const url=sb.storage.from(BUCKET).getPublicUrl(p).data.publicUrl,old=S.bg?.[k];await saveData({...S,bg:{...S.bg,[k]:url}});const q=old&&pathOf(old);if(q)sb.storage.from(BUCKET).remove([q])}catch(e){toast('Upload failed: '+(e.message||e))}A.busy=false;draw()}
+-+async function rmBg(k){const old=S.bg?.[k],n={...S.bg};delete n[k];await saveData({...S,bg:n});const q=old&&pathOf(old);if(q)sb.storage.from(BUCKET).remove([q])}
+- const blank=()=>({cat:'sale',type:'house',title:'',loc:'',meta:'',price:'',description:'',images:[]});
+- function editL(id){A.edit=id;const i=items.find(x=>x.id==id);A.draft=i?{...i,images:[...(i.images||[])]}:blank();A.orig=[...A.draft.images];draw();scrollTo(0,0)}
+- const pathOf=u=>{const k='/'+BUCKET+'/';const i=u.indexOf(k);return i<0?null:decodeURIComponent(u.slice(i+k.length).split('?')[0])};
+-@@ -153,13 +172,13 @@ if(A.tab=='items'){if(A.edit){const d=A.draft;b=`<div class="panel"><h3 class="s
+- <label>Images (the first is the cover)</label><input type="file" accept="image/*" multiple onchange="addImgs(this)" ${A.busy?'disabled':''}><div class="th">${d.images.map((u,k)=>`<div><img src="${esc(u)}" alt=""><button type="button" onclick="rmImg(${k})" aria-label="Remove image">×</button></div>`).join('')}</div>
+- <p style="margin-top:22px"><button class="btn" onclick="saveL()" ${A.busy?'disabled':''}>Save listing</button><button class="btn ghost" onclick="A.edit=null;draw()">Cancel</button></p></div>`}
+- else b=`<p style="margin-top:22px"><button class="btn" onclick="editL('new')">+ Add listing</button></p><div class="panel"><table><tr><th></th><th>Title</th><th>Category</th><th>Type</th><th>Price</th><th></th></tr>${items.map(i=>`<tr><td>${i.images?.[0]?`<img src="${esc(i.images[0])}" alt="">`:''}</td><td>${esc(i.title)}</td><td>${CATS[i.cat]}</td><td>${esc(LBL[i.type]||i.type)}</td><td>${esc(i.price)}</td><td><button class="btn sm ghost" onclick="editL('${i.id}')">Edit</button><button class="btn sm red" onclick="delL('${i.id}')">Delete</button></td></tr>`).join('')||'<tr><td>No listings yet</td></tr>'}</table></div>`}
+--else if(A.tab=='site')b=`<div class="panel"><h3 class="serif" style="font-size:1.6rem">Site text &amp; contact</h3><div class="f">${[['name','Brand name'],['phone','Phone (displayed)'],['wa','WhatsApp number (digits, with country code)'],['email','Email'],['addr','Address line']].map(([k,l])=>`<div><label for="s_${k}">${l}</label><input id="s_${k}" value="${esc(S[k])}"></div>`).join('')}</div><label for="s_h1">Hero headline</label><input id="s_h1" value="${esc(S.h1)}"><label for="s_hp">Hero paragraph</label><textarea id="s_hp" rows="3">${esc(S.hp)}</textarea><h3 class="serif" style="margin-top:24px">Homepage stats</h3><div class="f">${S.stats.map((x,i)=>`<div><label>Stat ${i+1}</label><input id="st${i}a" value="${esc(x[0])}"><input id="st${i}b" value="${esc(x[1])}" style="margin-top:6px"></div>`).join('')}</div><p style="margin-top:20px"><button class="btn" onclick="saveS()">Save</button></p></div>`;
+-+else if(A.tab=='site')b=`<div class="panel"><h3 class="serif" style="font-size:1.6rem">Site text &amp; contact</h3><div class="f">${[['name','Brand name'],['phone','Phone (displayed)'],['wa','WhatsApp number (digits, with country code)'],['email','Email'],['addr','Address line']].map(([k,l])=>`<div><label for="s_${k}">${l}</label><input id="s_${k}" value="${esc(S[k])}"></div>`).join('')}</div><label for="s_h1">Hero headline</label><input id="s_h1" value="${esc(S.h1)}"><label for="s_hp">Hero paragraph</label><textarea id="s_hp" rows="3">${esc(S.hp)}</textarea><h3 class="serif" style="margin-top:24px">Homepage stats</h3><div class="f">${S.stats.map((x,i)=>`<div><label>Stat ${i+1}</label><input id="st${i}a" value="${esc(x[0])}"><input id="st${i}b" value="${esc(x[1])}" style="margin-top:6px"></div>`).join('')}</div><p style="margin-top:20px"><button class="btn" onclick="saveS()">Save</button></p></div><div class="panel"><h3 class="serif" style="font-size:1.6rem">Page background photos</h3><p class="small">Upload a wide photo (landscape works best) for each page banner. Without one, a default skyline illustration is shown.</p><div class="f">${BGK.map(([k,l])=>`<div><label>${l}</label>${S.bg?.[k]?`<div class="th"><div><img src="${esc(S.bg[k])}" alt=""><button type="button" onclick="rmBg('${k}')" aria-label="Remove">×</button></div></div>`:''}<input type="file" accept="image/*" onchange="upBg('${k}',this)" ${A.busy?'disabled':''}></div>`).join('')}</div></div>`;
+- else b=`<div class="panel"><h3 class="serif" style="font-size:1.6rem">Calculator pricing</h3><p class="small">Rates in PKR per covered sqft.</p><div class="f">${Object.keys(S.rates).map(k=>`<div><label for="r_${k}">${CL[k]}</label><input type="number" id="r_${k}" value="${S.rates[k]}"></div>`).join('')}<div><label for="r_bm">Basement cost multiplier</label><input type="number" step="0.05" id="r_bm" value="${S.basementMult}"></div><div><label for="r_ct">Contingency %</label><input type="number" id="r_ct" value="${S.contingency}"></div><div><label for="r_bn">Range band ±%</label><input type="number" id="r_bn" value="${S.band}"></div></div><p style="margin-top:20px"><button class="btn" onclick="saveR()">Save</button></p></div>`;
+- return `<section><span class="eb">Admin · ${esc(A.user.email)}</span><h2 class="serif">Manage your website.</h2><p class="lead">Changes are saved to the database and appear for all visitors immediately.</p><p style="margin-top:12px"><button class="btn sm ghost" onclick="logout()">Sign out</button></p><div class="chips">${t('items','Listings')}${t('site','Site text & contact')}${t('rates','Calculator pricing')}</div>${b}</section>`}
+- /* render */
+--function draw(){nav();if(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&view=='admin'&&0)return;
+--const V={home,sale:()=>listing('sale'),rent:()=>listing('rent'),stay:()=>listing('stay'),construction:cons,calc,contact,admin};$('app').innerHTML=(V[view]||home)();
+-+function draw(anim){nav();if(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&view=='admin'&&0)return;
+-+const V={home,sale:()=>listing('sale'),rent:()=>listing('rent'),stay:()=>listing('stay'),construction:cons,calc,contact,admin};$('app').innerHTML=(view=='admin'?`<header class="ph sm" ${bgs('admin')}></header>`:'')+(V[view]||home)();if(anim){const a=$('app');a.classList.remove('enter');void a.offsetWidth;a.classList.add('enter')}if(view!='admin')reveal();
+- if(view=='calc'){const c=$('cc');c.dataset.m='';['cs','cu','cm','cf','cb','ct','co'].forEach(i=>{$(i).oninput=$(i).onchange=()=>{if(['cs','cu','cm'].includes(i))c.dataset.m='';recalc()}});c.oninput=()=>{c.dataset.m='1';recalc()};recalc()}}
+--addEventListener('hashchange',()=>{view=(location.hash||'#home').slice(1);filt='all';draw()});
+-+addEventListener('hashchange',()=>{const v=(location.hash||'#home').slice(1);if(v!==view){view=v;filt='all';draw(true);scrollTo({top:0,behavior:'instant'})}});
+- (async()=>{draw();await load();draw();if(sb){const{data}=await sb.auth.getSession();await session(data.session);sb.auth.onAuthStateChange((ev,s)=>{if(ev=='SIGNED_OUT'){A.user=null;A.ok=false;draw()}})}})();
+- </script></body></html>
+--- 
+-2.43.0
+-
+-- 
+2.43.0
+
