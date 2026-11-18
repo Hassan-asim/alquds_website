@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Al-Quds Real Estate & Builders</title>
-<meta name="description" content="Buy, rent, stay and build with Al-Quds Real Estate & Builders — Islamabad & Rawalpindi.">
+<title>Al-Quds Real Estate | Houses, Plots & Construction Islamabad</title>
+<meta name="description" content="Al-Quds Real Estate & Builders in Islamabad and Rawalpindi — houses, villas, plots, rentals, farmhouses and turn-key construction.">
+<meta name="keywords" content="Al-Quds Real Estate, Al Quds Real Estate, property in Islamabad, houses for sale Islamabad, plots in Islamabad, real estate Rawalpindi, farmhouse Islamabad, construction Islamabad">
 <meta name="theme-color" content="#A85F33">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <link rel="canonical" href="https://alqudswebsite.vercel.app/">
@@ -94,11 +95,11 @@ const LBL={house:'House',villa:'Villas',farmhouse:'Farmhouse',plot:'Plot',shop:'
 let S=structuredClone(DEF),items=SEED,view=(location.hash||'#home').slice(1),filt='all',loadErr='';
 let idle;const bump=()=>{clearTimeout(idle);if(A.user&&view=='admin')idle=setTimeout(async()=>{await logout();toast('Signed out after 15 minutes of inactivity')},15*60*1000)};['click','keydown','touchstart'].forEach(e=>addEventListener(e,bump,{passive:true}));
 const A={user:null,ok:false,tab:'items',edit:null,draft:null,orig:[],busy:false,checked:false};
-const bgs=k=>{const u=S.bg?.[k]||(CFG.banners||{})[k]||CFG.banner||'';return u?`style="background:linear-gradient(180deg,var(--ov1),var(--ov2)),url('${esc(u)}') center/cover no-repeat,var(--phbase)"`:`style="background:var(--phbase)"`};
+const bgs=k=>{const u=S.bg?.[k]||(CFG.banners||{})[k]||CFG.banner||'';if(!u)return `style="background:var(--phbase)"`;const light=document.documentElement.dataset.theme!='dark';return light?`style="background:url('${esc(u)}') center/cover no-repeat,var(--phbase)"`:`style="background:linear-gradient(180deg,var(--ov1),var(--ov2)),url('${esc(u)}') center/cover no-repeat,var(--phbase)"`};
 const wa=m=>`https://wa.me/${S.wa}${m?'?text='+encodeURIComponent(m):''}`;
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3200)};
 /* theme */
-const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}nav()};
+const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}draw(true)};
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{let s=null;try{s=localStorage.getItem('theme')}catch(x){}if(!s){document.documentElement.dataset.theme=e.matches?'dark':'light';nav()}});
 function leaveAdmin(){if(sb&&A.user){sb.auth.signOut({scope:'local'});A.user=null;A.ok=false;A.edit=null;A.draft=null;clearTimeout(idle)}}
 function go(v){if(view=='admin'&&v!='admin')leaveAdmin();view=v;filt='all';location.hash=v;draw(true);scrollTo({top:0,behavior:'instant'})}
