@@ -5,6 +5,14 @@ window.ALQUDS_CONFIG = {
   // Optional page banner photos. Put image files in an "assets" folder in this repo and list them here,
   // e.g. banners: { home: "assets/home.jpg", sale: "assets/buy.jpg" }  — or use one photo for all pages: banner: "assets/banner.jpg".
   // Photos uploaded in the admin panel (Site text tab) take priority over these.
-  banners: {},
-  banner: ""
+  banners: {
+    home: "assets/images/2.jpg",
+    sale: "assets/images/3.jpg",
+    rent: "assets/images/5.jpg",
+    stay: "assets/images/11.jpg",
+    construction: "assets/images/4.jpg",
+    calc: "assets/images/8.jpg",
+    contact: "assets/images/2.jpg",
+    admin: "assets/images/1.jpg"
+  }
 };
